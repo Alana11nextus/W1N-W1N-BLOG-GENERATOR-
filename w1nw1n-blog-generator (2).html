@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>W1N W1N Blog Content Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #CC1A1A;
+      --red-dark: #8B0000;
+      --red-bright: #E02020;
+      --charcoal: #2F2F2F;
+      --black: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --border: #2a2a2a;
+      --text: #F0EDE8;
+      --muted: #555;
+      --success: #4caf72;
+      --warning: #e0a020;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--black); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+    /* ─── HEADER ─── */
+    header { background: var(--charcoal); border-bottom: 3px solid var(--red); display: flex; align-items: stretch; }
+    .header-logo-block { background: var(--red); padding: 16px 40px 16px 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%); }
+    .header-text { display: flex; flex-direction: column; justify-content: center; padding: 18px 24px; }
+    .header-brand { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 4px; color: var(--red); margin-bottom: 2px; }
+    .header-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text); line-height: 1; }
+    .header-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+    /* ─── MAIN ─── */
+    main { max-width: 920px; margin: 0 auto; padding: 44px 24px 80px; }
+
+    .section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--red); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    textarea { width: 100%; min-height: 190px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 18px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; line-height: 1.7; resize: vertical; outline: none; transition: border-color 0.2s; margin-bottom: 20px; display: block; }
+    textarea:focus { border-color: var(--red); }
+    textarea::placeholder { color: #333; }
+
+    /* ─── STEP INDICATOR ─── */
+    .steps { display: flex; gap: 0; margin-bottom: 32px; }
+    .step { flex: 1; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); text-align: center; position: relative; }
+    .step:not(:last-child)::after { content: '→'; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: var(--border); z-index: 1; font-size: 14px; }
+    .step.active { background: var(--red); border-color: var(--red); color: #fff; }
+    .step.done { background: #1a2a1a; border-color: #2a4a2a; color: var(--success); }
+
+    /* ─── BUTTONS ─── */
+    .btn { border: none; border-radius: 6px; padding: 14px 24px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-full { width: 100%; }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-red:hover { background: var(--red-bright); }
+    .btn-red:disabled { background: #2a2a2a; color: #444; cursor: not-allowed; }
+    .btn-dark { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 13px; padding: 10px 22px; }
+    .btn-dark:hover { border-color: #444; color: var(--text); }
+    .btn-dark.copied { border-color: #2a5a2a; color: var(--success); background: #0a180a; }
+    .btn-green { background: #1a3a1a; border: 1px solid #2a5a2a; color: var(--success); }
+    .btn-green:hover { background: #1f4a1f; }
+    .btn-green:disabled { background: #1a1a1a; border-color: var(--border); color: #444; cursor: not-allowed; }
+    .btn-warning { background: #2a1f0a; border: 1px solid #4a3a0a; color: var(--warning); }
+    .btn-warning:hover { background: #3a2a0a; }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .loading .spinner { display: block; }
+
+    /* ─── NOTICES ─── */
+    .error-box { background: #1e0a0a; border: 1px solid #5a1515; border-radius: 6px; padding: 14px 18px; color: #f08080; font-size: 13px; margin-bottom: 20px; display: none; }
+    .success-box { background: #0a1e0a; border: 1px solid #1a5a1a; border-radius: 6px; padding: 14px 18px; color: var(--success); font-size: 13px; margin-top: 16px; display: none; }
+    .info-box { background: #0a0a1e; border: 1px solid #1a1a5a; border-radius: 6px; padding: 12px 16px; color: #8888ff; font-size: 12px; margin-bottom: 20px; }
+
+    /* ─── RESULTS ─── */
+    .results { display: none; }
+    .results.visible { display: block; animation: fadeUp 0.4s ease both; }
+
+    .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); }
+    .tab-btn { background: transparent; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; padding: 11px 24px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: color 0.2s; margin-bottom: -1px; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { background: var(--surface); border-color: var(--border); border-bottom-color: var(--surface); color: var(--red); }
+
+    .tab-panel { display: none; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 6px 6px 6px; padding: 28px; }
+    .tab-panel.active { display: block; }
+
+    .blog-title { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; color: var(--red); margin-bottom: 20px; line-height: 1.25; }
+    .content-output { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.85; color: #c8c4bc; }
+
+    /* ─── ACTION PANEL ─── */
+    .action-panel { margin-top: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+    .action-title { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .action-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .action-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .badge-pending { background: #2a1a0a; border: 1px solid #5a3a0a; color: var(--warning); }
+    .badge-saved { background: #0a1a2a; border: 1px solid #0a3a5a; color: #6699ff; }
+    .badge-posted { background: #0a1e0a; border: 1px solid #1a5a1a; color: var(--success); }
+
+    .btn-reset { margin-top: 20px; background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 10px 22px; color: #3a3a3a; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: color 0.2s; display: block; }
+    .btn-reset:hover { color: #666; }
+
+    /* ─── FOOTER ─── */
+    footer { border-top: 1px solid var(--border); padding: 18px 40px; display: flex; align-items: center; justify-content: space-between; background: var(--charcoal); }
+    .foot-left { display: flex; align-items: center; gap: 12px; }
+    .foot-brand { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; color: var(--red); }
+    .foot-divider { width: 1px; height: 16px; background: #3a3a3a; }
+    .foot-note { font-size: 11px; color: #3a3a3a; }
+    .foot-right { font-size: 11px; color: #2a2a2a; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 600px) {
+      .header-logo-block { padding: 14px 20px 14px 16px; clip-path: none; }
+      main { padding: 28px 16px 60px; }
+      footer { padding: 16px; flex-direction: column; gap: 8px; text-align: center; }
+      .steps { display: none; }
+      .action-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── PASSWORD SCREEN ─── -->
+  <div id="passwordScreen" style="position:fixed;inset:0;z-index:9999;background:#0a0a0a;display:flex;align-items:center;justify-content:center;">
+    <div style="width:100%;max-width:380px;padding:24px;text-align:center;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;color:#CC1A1A;margin-bottom:4px;">W1N W1N</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:32px;">Blog Content Generator</div>
+      <input id="passwordInput" type="password" placeholder="Enter password" style="width:100%;background:#141414;border:1px solid #2a2a2a;border-radius:6px;padding:14px 18px;color:#F0EDE8;font-family:'Barlow',sans-serif;font-size:15px;outline:none;text-align:center;margin-bottom:12px;transition:border-color 0.2s;" onkeydown="if(event.key==='Enter')checkPassword()"/>
+      <div id="pwError" style="color:#f08080;font-size:12px;margin-bottom:12px;display:none;">Incorrect password. Try again.</div>
+      <button onclick="checkPassword()" style="width:100%;background:#CC1A1A;color:#fff;border:none;border-radius:6px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Enter</button>
+      <div style="margin-top:24px;font-size:11px;color:#333;">Authorised team use only</div>
+    </div>
+  </div>
+  <script>
+    function checkPassword() {
+      if (document.getElementById('passwordInput').value === 'W1Nw1nblogs') {
+        document.getElementById('passwordScreen').style.display = 'none';
+      } else {
+        document.getElementById('pwError').style.display = 'block';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordInput').focus();
+      }
+    }
+  </script>
+
+  <!-- ─── HEADER ─── -->
+  <header>
+    <div class="header-logo-block">
+      <svg width="60" height="40" viewBox="0 0 90 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="0,0 13,0 22,58 9,58" fill="white" opacity="1"/>
+        <polygon points="13,0 26,0 22,58 9,58" fill="white" opacity="0.55"/>
+        <polygon points="26,0 39,0 31,58 18,58" fill="white" opacity="1"/>
+        <polygon points="46,0 59,0 68,58 55,58" fill="white" opacity="1"/>
+        <polygon points="59,0 72,0 68,58 55,58" fill="white" opacity="0.55"/>
+        <polygon points="72,0 85,0 77,58 64,58" fill="white" opacity="1"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <div class="header-brand">W1N W1N PTY LTD</div>
+      <div class="header-title">Blog Content Generator</div>
+      <div class="header-sub">Transcript → Blog → Google Sheet → GHL. All in one workflow.</div>
+    </div>
+  </header>
+
+  <!-- ─── MAIN ─── -->
+  <main>
+
+    <!-- Step indicators -->
+    <div class="steps" id="stepIndicator">
+      <div class="step active" id="step1">1. Paste Transcript</div>
+      <div class="step" id="step2">2. Generate</div>
+      <div class="step" id="step3">3. Save to Sheet</div>
+      <div class="step" id="step4">4. Push to GHL</div>
+    </div>
+
+    <div class="section-label">TikTok / Video Transcript</div>
+    <textarea id="transcript" placeholder="Paste your raw transcript here — TikTok video, Q&A response, or any spoken content..."></textarea>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <button class="btn btn-red btn-full" id="generateBtn" onclick="generate()" style="margin-bottom:36px;">
+      <div class="spinner" id="spinner"></div>
+      <span id="btnText">Generate Content</span>
+    </button>
+
+    <!-- ─── RESULTS ─── -->
+    <div class="results" id="results">
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('blog', this)">Blog Post</button>
+        <button class="tab-btn" onclick="switchTab('caption', this)">Social Caption</button>
+        <button class="tab-btn" onclick="switchTab('meta', this)">Meta Description</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-blog">
+        <div class="blog-title" id="blogTitle"></div>
+        <div class="content-output" id="blogContent"></div>
+        <div class="btn-row">
+          <button class="btn btn-dark" id="copyBlog" onclick="copyContent('blog')"><span>Copy Blog Post</span></button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-caption">
+        <div class="content-output" id="captionContent"></div>
+        <div class="btn-row">
+          <button class="btn btn-dark" id="copyCaption" onclick="copyContent('caption')"><span>Copy Caption</span></button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-meta">
+        <div class="content-output" id="metaContent"></div>
+        <div class="btn-row">
+          <button class="btn btn-dark" id="copyMeta" onclick="copyContent('meta')"><span>Copy Meta</span></button>
+        </div>
+      </div>
+
+      <!-- ─── ACTION PANEL ─── -->
+      <div class="action-panel">
+        <div class="action-title">Workflow Actions</div>
+        <div class="action-row">
+
+          <!-- Save to Sheet -->
+          <button class="btn btn-dark" id="saveSheetBtn" onclick="saveToSheet()">
+            <span id="saveSheetText">📊 Save to Google Sheet</span>
+          </button>
+
+          <!-- Push to GHL -->
+          <button class="btn btn-warning" id="pushGHLBtn" onclick="pushToGHL()">
+            <span id="pushGHLText">🚀 Push Draft to GHL</span>
+          </button>
+
+        </div>
+
+        <div class="success-box" id="sheetSuccess">✓ Saved to "Automated Blogs to Check" tab in your Google Sheet. Status set to <strong>Needs Posting</strong>.</div>
+        <div class="success-box" id="ghlSuccess">✓ Blog draft pushed to GHL. Go to your GHL Blogs section to review and publish.</div>
+        <div class="error-box" id="actionError" style="margin-top:16px;margin-bottom:0;"></div>
+      </div>
+
+      <button class="btn-reset" onclick="resetAll()">← Start Over</button>
+    </div>
+
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="foot-left">
+      <div class="foot-brand">W1N W1N</div>
+      <div class="foot-divider"></div>
+      <div class="foot-note">Internal tool — authorised team use only</div>
+    </div>
+    <div class="foot-right">w1nw1n.com.au</div>
+  </footer>
+
+  <script>
+    // ─── CONFIG ───────────────────────────────────────────
+    const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/w1nw1n.com.au/s/AKfycbzmS2amSdoxbyw0D0otYqj4fpVI7pf80HRuEob0n-xCo3rz9zy_koRXXSIuV6HlzYJG/exec';
+    const GHL_API_KEY     = 'PASTE_NEW_GHL_KEY_HERE'; // ← swap once GHL resets your key
+    const GHL_LOCATION_ID = 'xVEIlx8L13RH5ftYJTMg';
+    // ─────────────────────────────────────────────────────
+
+    const SYSTEM_PROMPT = `You are a content writer for W1N W1N, a Perth-based mining and FIFO recruitment and career consulting brand founded by Alana Mohi — a straight-talking Kiwi woman with 25+ years experience in mining, FIFO operations, and recruitment.
+
+BRAND VOICE RULES:
+- Direct, confident, zero fluff
+- Anti-overthinking, pro-action
+- Call things out plainly — no hedging
+- Core message: "You don't need 20 tickets — you need the right strategy"
+- Audience: frustrated FIFO/mining job seekers doing it wrong, or employers wasting money on broken recruitment
+
+ALWAYS END WITH:
+"Need help? Contact info@w1nw1n.com.au or book a consultation: https://getanyjobever.w1nw1n.com.au/careerconsultation"
+
+BLOG TONE — polished, SEO-optimised, employer-facing:
+Confident and authoritative. Still direct — no corporate waffle. Uses headers and bullets where helpful. Written by someone who has lived it.
+
+SOCIAL CAPTION TONE — raw Alana voice:
+Short punchy lines. Real talk. Light swearing where it lands. Scroll-stopping hook. Urgency. No padding. Ends with hashtags on a new line.
+
+ALANA'S BACKGROUND:
+- Started FIFO at 18 — utility worker, 3 weeks in 40+ degree February heat
+- 17 years in mining, used that income to buy multiple properties and fund her business
+- 25+ years across mining, recruitment and career strategy
+- Helped tens of thousands of Australians get mining/FIFO jobs
+- Featured: Yahoo Finance, Daily Mail UK, SEEK
+- Hates: unnecessary tickets, generic resumes, waiting to be ready, overpriced recruiters
+- Loves: strategy, results, real people getting real jobs
+
+RETURN ONLY valid JSON — no markdown, no preamble:
+{
+  "blog_title": "...",
+  "blog_post": "...",
+  "social_caption": "...",
+  "hashtags": "...",
+  "meta_description": "..."
+}`;
+
+    let resultData = null;
+
+    // ─── STEP HELPER ──────────────────────────────────────
+    function setStep(n) {
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById('step' + i);
+        el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+      }
+    }
+
+    // ─── GENERATE ─────────────────────────────────────────
+    async function generate() {
+      const transcript = document.getElementById('transcript').value.trim();
+      const errorBox   = document.getElementById('errorBox');
+      const btn        = document.getElementById('generateBtn');
+      const spinner    = document.getElementById('spinner');
+      const btnText    = document.getElementById('btnText');
+
+      errorBox.style.display = 'none';
+      if (!transcript) {
+        errorBox.textContent = 'Please paste a transcript before generating.';
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.classList.add('loading');
+      spinner.style.display = 'block';
+      btnText.textContent = 'Generating...';
+      setStep(2);
+
+      try {
+        // Route through Google Apps Script to avoid CORS/auth issues
+        const payload = {
+          action: 'claude',
+          system: SYSTEM_PROMPT,
+          message: `Generate content from this W1N W1N transcript. Return ONLY valid JSON.\n\nTRANSCRIPT:\n${transcript}`
+        };
+
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'error') throw new Error(data.message);
+
+        const raw = data.result || '';
+        resultData = JSON.parse(raw.replace(/```json|```/g, '').trim());
+
+        document.getElementById('blogTitle').textContent    = resultData.blog_title || '';
+        document.getElementById('blogContent').textContent  = resultData.blog_post || '';
+        document.getElementById('captionContent').textContent = (resultData.social_caption || '') + '\n\n' + (resultData.hashtags || '');
+        document.getElementById('metaContent').textContent  = resultData.meta_description || '';
+
+        document.querySelectorAll('.tab-btn').forEach((b,i)  => b.classList.toggle('active', i===0));
+        document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i===0));
+
+        const resultsEl = document.getElementById('results');
+        resultsEl.classList.add('visible');
+        setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+        setStep(3);
+
+      } catch (e) {
+        errorBox.textContent = 'Generation failed. Error: ' + e.message;
+        errorBox.style.display = 'block';
+        setStep(1);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        spinner.style.display = 'none';
+        btnText.textContent = 'Regenerate';
+      }
+    }
+
+    // ─── SAVE TO SHEET ────────────────────────────────────
+    async function saveToSheet() {
+      if (!resultData) return;
+      const btn     = document.getElementById('saveSheetBtn');
+      const btnText = document.getElementById('saveSheetText');
+      const success = document.getElementById('sheetSuccess');
+      const errBox  = document.getElementById('actionError');
+
+      btn.disabled = true;
+      btnText.textContent = '⏳ Saving...';
+      errBox.style.display = 'none';
+      success.style.display = 'none';
+
+      try {
+        const payload = {
+          action: 'sheet',
+          date: new Date().toLocaleString('en-AU', { timeZone: 'Australia/Perth' }),
+          blog_title:       resultData.blog_title || '',
+          blog_post:        resultData.blog_post || '',
+          social_caption:   resultData.social_caption || '',
+          hashtags:         resultData.hashtags || '',
+          meta_description: resultData.meta_description || ''
+        };
+
+        await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+
+        success.style.display = 'block';
+        btnText.textContent = '✓ Saved to Sheet';
+        setStep(4);
+
+      } catch (e) {
+        errBox.textContent = 'Failed to save to sheet. Try again.';
+        errBox.style.display = 'block';
+        btn.disabled = false;
+        btnText.textContent = '📊 Save to Google Sheet';
+      }
+    }
+
+    // ─── PUSH TO GHL ──────────────────────────────────────
+    async function pushToGHL() {
+      if (!resultData) return;
+      if (GHL_API_KEY === 'PASTE_NEW_GHL_KEY_HERE') {
+        document.getElementById('actionError').textContent = 'GHL API key not set yet — waiting on your reset key. Save to Sheet in the meantime.';
+        document.getElementById('actionError').style.display = 'block';
+        return;
+      }
+
+      const btn     = document.getElementById('pushGHLBtn');
+      const btnText = document.getElementById('pushGHLText');
+      const success = document.getElementById('ghlSuccess');
+      const errBox  = document.getElementById('actionError');
+
+      btn.disabled = true;
+      btnText.textContent = '⏳ Pushing to GHL...';
+      errBox.style.display = 'none';
+      success.style.display = 'none';
+
+      try {
+        const payload = {
+          action: 'ghl',
+          ghl_key: GHL_API_KEY,
+          location_id: GHL_LOCATION_ID,
+          title: resultData.blog_title || 'Untitled Blog',
+          body: resultData.blog_post || '',
+          meta_description: resultData.meta_description || ''
+        };
+
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const data = await response.json();
+
+        if (data.status === 'error') throw new Error(data.message);
+
+        success.style.display = 'block';
+        btnText.textContent = '✓ Pushed to GHL';
+
+      } catch (e) {
+        errBox.textContent = 'GHL push failed: ' + e.message;
+        errBox.style.display = 'block';
+        btn.disabled = false;
+        btnText.textContent = '🚀 Push Draft to GHL';
+      }
+    }
+
+    // ─── TABS ─────────────────────────────────────────────
+    function switchTab(tabId, btnEl) {
+      document.querySelectorAll('.tab-btn').forEach(b  => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btnEl.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    // ─── COPY ─────────────────────────────────────────────
+    function copyContent(type) {
+      const labels  = { blog: 'Copy Blog Post', caption: 'Copy Caption', meta: 'Copy Meta' };
+      const btn     = document.getElementById('copy' + type.charAt(0).toUpperCase() + type.slice(1));
+      const textMap = {
+        blog:    (resultData?.blog_title || '') + '\n\n' + (resultData?.blog_post || ''),
+        caption: (resultData?.social_caption || '') + '\n\n' + (resultData?.hashtags || ''),
+        meta:    resultData?.meta_description || ''
+      };
+      navigator.clipboard.writeText(textMap[type]).then(() => {
+        btn.classList.add('copied');
+        btn.querySelector('span').textContent = '✓ Copied!';
+        setTimeout(() => { btn.classList.remove('copied'); btn.querySelector('span').textContent = labels[type]; }, 2000);
+      });
+    }
+
+    // ─── RESET ────────────────────────────────────────────
+    function resetAll() {
+      document.getElementById('transcript').value = '';
+      document.getElementById('results').classList.remove('visible');
+      document.getElementById('errorBox').style.display = 'none';
+      document.getElementById('sheetSuccess').style.display = 'none';
+      document.getElementById('ghlSuccess').style.display = 'none';
+      document.getElementById('actionError').style.display = 'none';
+      document.getElementById('saveSheetBtn').disabled = false;
+      document.getElementById('saveSheetText').textContent = '📊 Save to Google Sheet';
+      document.getElementById('pushGHLBtn').disabled = false;
+      document.getElementById('pushGHLText').textContent = '🚀 Push Draft to GHL';
+      document.getElementById('btnText').textContent = 'Generate Content';
+      resultData = null;
+      setStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('transcript').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) generate();
+    });
+  </script>
+</body>
+</html>
