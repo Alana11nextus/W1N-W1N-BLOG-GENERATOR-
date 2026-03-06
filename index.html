@@ -334,11 +334,12 @@ RETURN ONLY valid JSON — no markdown, no preamble:
         const payload = {
           action: 'claude',
           system: SYSTEM_PROMPT,
-          message: `Generate content from this W1N W1N transcript. Return ONLY valid JSON.\n\nTRANSCRIPT:\n${transcript}`
+          message: 'Generate content from this W1N W1N transcript. Return ONLY valid JSON.\n\nTRANSCRIPT:\n' + transcript
         };
 
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
 
